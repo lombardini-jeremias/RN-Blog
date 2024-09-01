@@ -5,15 +5,22 @@ const blogReducer = (state, action) => {
     case "delete_blogpost":
       return state.filter((blogPost) => blogPost.id !== action.payload);
 
+    case "edit_blogpost":
+      return state.map((blogPost) => {
+        return blogPost.id === action.payload.id ? action.payload : blogPost;
+      });
+
     case "add_blogpost":
-      // Si en state ya tiene elementos, toma el ID del último post y le suma 1.
-      // Si no hay posts en el state [], el primer ID será 1.
       const incrementalId =
         state.length > 0 ? state[state.length - 1].id + 1 : 1;
 
       return [
         ...state,
-        { id: incrementalId, title: `Blog Post #${incrementalId}` },
+        {
+          id: incrementalId,
+          title: action.payload.title,
+          content: action.payload.content,
+        },
       ];
     default:
       return state;
@@ -21,8 +28,19 @@ const blogReducer = (state, action) => {
 };
 
 const addBlogPost = (dispatch) => {
-  return () => {
-    dispatch({ type: "add_blogpost" });
+  return (title, content, redirectHome) => {
+    dispatch({ type: "add_blogpost", payload: { title, content } });
+    redirectHome();
+  };
+};
+
+const editBlogPost = (dispatch) => {
+  return (id, title, content, redirectHome) => {
+    dispatch({
+      type: "edit_blogpost",
+      payload: { id: id, title: title, content: content },
+    });
+    redirectHome();
   };
 };
 
@@ -35,7 +53,7 @@ const deleteBlogPost = (dispatch) => {
 
 export const { Context, Provider } = createDataContext(
   blogReducer,
-  { addBlogPost, deleteBlogPost },
+  { addBlogPost, editBlogPost, deleteBlogPost },
   []
 );
 
